@@ -3,6 +3,7 @@ import 'package:news/app/domain/entities/article_entity.dart';
 import 'package:news/app/domain/usecases/get_top_headlines.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:async';
 
 class HomeController extends GetxController {
   // Controller depends only on the UseCase (Domain layer)
@@ -36,10 +37,20 @@ class HomeController extends GetxController {
     initialRefresh: false,
   );
 
+  Timer? _autoRefreshTimer;
+
   @override
   void onInit() {
     super.onInit();
     fetchNews();
+    _startAutoRefresh();
+  }
+
+  void _startAutoRefresh() {
+    _autoRefreshTimer?.cancel();
+    _autoRefreshTimer = Timer.periodic(const Duration(minutes: 5), (timer) {
+      fetchNews(isRefresh: true);
+    });
   }
 
   // Main function to fetch news (used for initial load, refresh, and load more)
@@ -163,6 +174,7 @@ class HomeController extends GetxController {
   @override
   void onClose() {
     refreshController.dispose();
+    _autoRefreshTimer?.cancel();
     super.onClose();
   }
 }
