@@ -15,6 +15,9 @@ class HomeBinding extends Bindings {
     Get.lazyPut<GetTopHeadlinesUseCase>(
       () => GetTopHeadlinesUseCase(Get.find<NewsRepository>()),
     );
+    Get.lazyPut<SearchNewsUseCase>(
+      () => SearchNewsUseCase(Get.find<NewsRepository>()),
+    );
 
     // Controllers: Inject the UseCase into the controller
     Get.lazyPut<HomeController>(

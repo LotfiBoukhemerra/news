@@ -34,6 +34,15 @@ class NewsRepositoryImpl implements NewsRepository {
     required int page,
     required int pageSize,
   }) async {
-    throw UnimplementedError();
+    try {
+      final response = await _apiService.searchNews(
+        query: query,
+        page: page,
+        pageSize: pageSize,
+      );
+      return response.articles;
+    } catch (e) {
+      rethrow;
+    }
   }
 }

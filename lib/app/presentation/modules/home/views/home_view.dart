@@ -11,17 +11,49 @@ class HomeView extends GetView<HomeController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('News light'),
+        title: Obx(() {
+          if (controller.isSearching.value) {
+            return TextField(
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: 'Search articles...',
+                border: InputBorder.none,
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: () {
+                    controller.clearSearch();
+                  },
+                ),
+              ),
+              textInputAction: TextInputAction.search,
+              onSubmitted: (value) {
+                if (value.trim().isNotEmpty) {
+                  controller.searchNews(value.trim());
+                }
+              },
+              onChanged: (value) {
+                if (value.isEmpty) {
+                  controller.clearSearch();
+                }
+              },
+            );
+          } else {
+            return const Text('News light');
+          }
+        }),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              Get.snackbar(
-                "Coming Soon",
-                "Search functionality is not yet implemented.",
+          Obx(() {
+            if (!controller.isSearching.value) {
+              return IconButton(
+                icon: const Icon(Icons.search),
+                onPressed: () {
+                  controller.isSearching.value = true;
+                },
               );
-            },
-          ),
+            } else {
+              return const SizedBox.shrink();
+            }
+          }),
         ],
       ),
       body: SafeArea(

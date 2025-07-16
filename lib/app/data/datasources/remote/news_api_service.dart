@@ -45,4 +45,38 @@ class NewsApiService {
       throw Exception('An unexpected error occurred');
     }
   }
+
+  Future<NewsResponseModel> searchNews({
+    required String query,
+    required int page,
+    required int pageSize,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '/everything',
+        queryParameters: {
+          'q': query,
+          'page': page,
+          'pageSize': pageSize,
+          'apiKey': _apiKey,
+          'language': 'en',
+        },
+      );
+      return NewsResponseModel.fromJson(response.data);
+    } on DioException catch (e) {
+      if (kDebugMode) {
+        print("DioError:  [31m");
+        print(e.message);
+      }
+      throw Exception(
+        'Failed to search news:  [31m${e.response?.data['message'] ?? e.message}',
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error: ");
+        print(e.toString());
+      }
+      throw Exception('An unexpected error occurred');
+    }
+  }
 }

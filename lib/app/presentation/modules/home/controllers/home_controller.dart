@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 class HomeController extends GetxController {
   // Controller depends only on the UseCase (Domain layer)
   final GetTopHeadlinesUseCase _getTopHeadlinesUseCase;
+  final SearchNewsUseCase _searchNewsUseCase = Get.find<SearchNewsUseCase>();
 
   HomeController(this._getTopHeadlinesUseCase);
 
@@ -14,6 +15,8 @@ class HomeController extends GetxController {
   var articles = <ArticleEntity>[].obs;
   var isLoading = true.obs;
   var selectedCategory = 'general'.obs;
+  var searchQuery = ''.obs;
+  var isSearching = false.obs;
 
   // Available categories for filtering
   final List<String> categories = [
@@ -49,14 +52,22 @@ class HomeController extends GetxController {
     }
 
     try {
-      final params = GetTopHeadlinesParams(
-        page: _page,
-        pageSize: _pageSize,
-        category: selectedCategory.value,
-      );
-
-      // Execute the UseCase
-      final newArticles = await _getTopHeadlinesUseCase(params: params);
+      List<ArticleEntity> newArticles;
+      if (isSearching.value && searchQuery.value.isNotEmpty) {
+        final params = SearchNewsParams(
+          query: searchQuery.value,
+          page: _page,
+          pageSize: _pageSize,
+        );
+        newArticles = await _searchNewsUseCase(params: params);
+      } else {
+        final params = GetTopHeadlinesParams(
+          page: _page,
+          pageSize: _pageSize,
+          category: selectedCategory.value,
+        );
+        newArticles = await _getTopHeadlinesUseCase(params: params);
+      }
 
       if (isRefresh) {
         articles.value = newArticles; // Replace list on refresh
@@ -101,8 +112,28 @@ class HomeController extends GetxController {
   void changeCategory(String category) {
     if (selectedCategory.value != category) {
       selectedCategory.value = category;
+      isSearching.value = false;
+      searchQuery.value = '';
       fetchNews(isRefresh: true);
     }
+  }
+
+  // Search for news articles
+  Future<void> searchNews(String query) async {
+    searchQuery.value = query;
+    isSearching.value = query.isNotEmpty;
+    _page = 1;
+    isLoading.value = true;
+    refreshController.resetNoData();
+    await fetchNews(isRefresh: true);
+  }
+
+  // Clear search and return to normal headlines
+  void clearSearch() {
+    searchQuery.value = '';
+    isSearching.value = false;
+    _page = 1;
+    fetchNews(isRefresh: true);
   }
 
   // Utility to open the article URL
